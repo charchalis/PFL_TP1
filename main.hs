@@ -49,10 +49,18 @@ adjacent :: RoadMap -> City -> [(City,Distance)]
 adjacent rm c = [(y, d) | (x, y, d) <- rm, x == c] ++ [(x, d) | (x, y, d) <- rm, y == c]
 
 pathDistance :: RoadMap -> Path -> Maybe Distance
-pathDistance = undefined
+pathDistance rm = undefined
 
+
+--It takes a RoadMap (rm) as input.
+--It uses a list comprehension and the previously implemented cities function to iterate over all cities in the roadmap.
+--For each city, it calculates the number of adjacent cities using the adjacent function implemented before.
+--The result is a list of tuples where the first element is the city, and the second element is the number of adjacent cities.
+--The function returns the first element of the tuples with the maximum number of adjacent cities.
 rome :: RoadMap -> [City]
-rome = undefined
+rome rm = 
+    let cityRoadCounts = [(city, length $ adjacent rm city) | city <- cities rm]
+    in map fst $ filter (\(_, count) -> count == maximum (map snd cityRoadCounts)) cityRoadCounts
 
 isStronglyConnected :: RoadMap -> Bool
 isStronglyConnected = undefined
