@@ -76,7 +76,6 @@ rome rm =
     in map fst $ filter (\(_, count) -> count == maximum (map snd cityRoadCounts)) cityRoadCounts
 
 
-
 -- Helper function for DFS to collect reachable cities from a starting city
 dfs :: RoadMap -> City -> [City]
 dfs rm start = go [start] [] --This initializes the helper function go, passing it a list with the starting city [start] and an empty list [] to keep track of visited cities.
