@@ -48,14 +48,54 @@ distance rm c1 c2 = case filter (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 
 adjacent :: RoadMap -> City -> [(City,Distance)]
 adjacent rm c = [(y, d) | (x, y, d) <- rm, x == c] ++ [(x, d) | (x, y, d) <- rm, y == c]
 
+--It takes a RoadMap (rm) and a Path as input.
+--If the path is empty or has only one city, the distance is 0.
+--Otherwise, it calculates the distance between the first two cities in the path using the distance function.
+--If the distance is Nothing, the function returns Nothing.
+--If the distance is valid, it recursively calls itself with the rest of the path and adds the distance to the result.
+--Returns the result wrapped in a Just (because the result is of type Maybe Distance).
 pathDistance :: RoadMap -> Path -> Maybe Distance
-pathDistance = undefined
+pathDistance _ [] = Just 0 --If the path is empty, the distance is 0.
+pathDistance _ [_] = Just 0 --If the path has only one city, the distance is 0.
+pathDistance rm (c1:c2:cs) = 
+    case distance rm c1 c2 of
+        Nothing -> Nothing
+        Just d  -> case pathDistance rm (c2:cs) of
+            Nothing -> Nothing
+            Just ds -> Just (d + ds)
 
+
+--It takes a RoadMap (rm) as input.
+--It uses a list comprehension and the previously implemented cities function to iterate over all cities in the roadmap.
+--For each city, it calculates the number of adjacent cities using the adjacent function implemented before.
+--The result is a list of tuples where the first element is the city, and the second element is the number of adjacent cities.
+--The function returns the first element of the tuples with the maximum number of adjacent cities.
 rome :: RoadMap -> [City]
-rome = undefined
+rome rm = 
+    let cityRoadCounts = [(city, length $ adjacent rm city) | city <- cities rm]
+    in map fst $ filter (\(_, count) -> count == maximum (map snd cityRoadCounts)) cityRoadCounts
+
+
+
+-- Helper function for DFS to collect reachable cities from a starting city
+dfs :: RoadMap -> City -> [City]
+dfs rm start = go [start] [] --This initializes the helper function go, passing it a list with the starting city [start] and an empty list [] to keep track of visited cities.
+  where
+    go [] visited = visited --It takes two lists:
+                            --The first list contains cities yet to visit (the "to visit" stack).
+                            --The second list contains cities that have already been visited.
+    
+    go (c:cs) visited --This pattern matches the first city c from the "to visit" list and the rest of the cities cs.
+      | c `elem` visited = go cs visited --If the current city c has already been visited it skips this city
+      | otherwise = go (adjacentCities ++ cs) (c : visited) --otherwise add c to the visited (c:visited) and collect its adjacent cities and prepend them to the list of cities to visit
+      where
+        adjacentCities = [y | (x, y, _) <- rm, x == c] ++ [x | (x, y, _) <- rm, y == c] --This list comprehension gathers all cities directly connected to c (both directions)
+
+
+
 
 isStronglyConnected :: RoadMap -> Bool
-isStronglyConnected = undefined
+isStronglyConnected rm = all (\city -> length (dfs rm city) == length (cities rm)) (cities rm)
 
 shortestPath :: RoadMap -> City -> City -> [Path]
 shortestPath = undefined
