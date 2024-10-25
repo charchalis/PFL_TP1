@@ -88,13 +88,24 @@ dfs rm start = go [start] [] --This initializes the helper function go, passing 
       | c `elem` visited = go cs visited --If the current city c has already been visited it skips this city
       | otherwise = go (adjacentCities ++ cs) (c : visited) --otherwise add c to the visited (c:visited) and collect its adjacent cities and prepend them to the list of cities to visit
       where
-        adjacentCities = [y | (x, y, _) <- rm, x == c] ++ [x | (x, y, _) <- rm, y == c] --This list comprehension gathers all cities directly connected to c (both directions)
+        adjacentCities = ([y | (x, y, _) <- rm, x == c] ++ [x | (x, y, _) <- rm, y == c]) --This list comprehension gathers all cities directly connected to c (both directions)
+        --adjacentCities = [adjCity | (adjCity, _) <- adjacent rm c]  --less efficient
 
 
-
-
+--all Function:
+    --all is a higher-order function that takes a predicate (a function returning True or False) and a list. It checks if the predicate is True for every item in the list.
+    --In isStronglyConnected, all applies a lambda function to every city in the list cities rm.
+--Lambda Function:
+    --(\city -> length (dfs rm city) == length (cities rm))
+        --This lambda function checks if, starting from a particular city, dfs can reach all other cities.
+    --Breakdown:
+        --dfs rm city: Performs a depth-first search from the given city, returning a list of all cities reachable from that city.
+        --length (dfs rm city): Counts the number of cities reachable from the starting city.
+        --length (cities rm): Counts the total number of cities in the roadmap.
+        --length (dfs rm city) == length (cities rm): This comparison checks if the number of reachable cities from city matches the total number of cities. If it does, then starting from this city, we can reach every other city.
 isStronglyConnected :: RoadMap -> Bool
 isStronglyConnected rm = all (\city -> length (dfs rm city) == length (cities rm)) (cities rm)
+
 
 shortestPath :: RoadMap -> City -> City -> [Path]
 shortestPath = undefined
