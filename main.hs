@@ -75,8 +75,26 @@ rome rm =
     let cityRoadCounts = [(city, length $ adjacent rm city) | city <- cities rm]
     in map fst $ filter (\(_, count) -> count == maximum (map snd cityRoadCounts)) cityRoadCounts
 
+
+-- Helper function for DFS to collect reachable cities from a starting city
+dfs :: RoadMap -> City -> [City]
+dfs rm start = go [start] [] --This initializes the helper function go, passing it a list with the starting city [start] and an empty list [] to keep track of visited cities.
+  where
+    go [] visited = visited --It takes two lists:
+                            --The first list contains cities yet to visit (the "to visit" stack).
+                            --The second list contains cities that have already been visited.
+    
+    go (c:cs) visited --This pattern matches the first city c from the "to visit" list and the rest of the cities cs.
+      | c `elem` visited = go cs visited --If the current city c has already been visited it skips this city
+      | otherwise = go (adjacentCities ++ cs) (c : visited) --otherwise add c to the visited (c:visited) and collect its adjacent cities and prepend them to the list of cities to visit
+      where
+        adjacentCities = [y | (x, y, _) <- rm, x == c] ++ [x | (x, y, _) <- rm, y == c] --This list comprehension gathers all cities directly connected to c (both directions)
+
+
+
+
 isStronglyConnected :: RoadMap -> Bool
-isStronglyConnected = undefined
+isStronglyConnected rm = all (\city -> length (dfs rm city) == length (cities rm)) (cities rm)
 
 shortestPath :: RoadMap -> City -> City -> [Path]
 shortestPath = undefined
