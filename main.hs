@@ -134,11 +134,14 @@ shortestPath rm start end
             in dijkstra queue visited newShortestPaths  --Recursive Call: Continue the Dijkstra process using the remaining queue and updated shortest paths.
         | otherwise = --(currentCity != end)
             let newVisited = currentCity : visited  -- Mark the current city as visited
-                adjCities = [(neighbor, d) | (neighbor, d) <- adjacent rm currentCity, neighbor `notElem` visited]
-                newPaths = [(neighbor, neighbor : path, dist + d) | (neighbor, d) <- adjCities]
+                adjCities = [(neighbor, d) | (neighbor, d) <- adjacent rm currentCity, neighbor `notElem` visited] --Get all adjacent cities and distances for the current city that haven't been visited yet.
+                newPaths = [(neighbor, neighbor : path, dist + d) | (neighbor, d) <- adjCities]  --New Paths: Create new paths for each unvisited neighbor by:
+                                                                                                    --Taking the neighbor city,
+                                                                                                    --Constructing the new path (adding the neighbor to the current path),
+                                                                                                    --Updating the distance by adding the edge weight to the current distance.
                 -- Combine new paths with the existing queue and sort by distance
-                sortedQueue = Data.List.sortOn (\(_, _, d) -> d) (queue ++ newPaths)  
-            in dijkstra sortedQueue newVisited shortestPaths
+                sortedQueue = Data.List.sortOn (\(_, _, d) -> d) (queue ++ newPaths)  --Sort Queue: Combine the existing queue with the new paths and sort them based on the distance, ensuring that the next city to explore is always the one with the least cumulative distance.
+            in dijkstra sortedQueue newVisited shortestPaths --Recursive Call: Call dijkstra again with the updated queue, visited cities, and shortest paths.
 
 travelSales :: RoadMap -> Path
 travelSales = undefined
