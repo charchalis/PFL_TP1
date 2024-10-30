@@ -108,7 +108,37 @@ isStronglyConnected rm = all (\city -> length (dfs rm city) == length (cities rm
 
 
 shortestPath :: RoadMap -> City -> City -> [Path]
-shortestPath = undefined
+shortestPath rm start end
+    | start == end = [[start]]  -- If start and end are the same, return the city as the only path
+    | otherwise = dijkstra [(start, [start], 0)] [] []  -- Initialize the priority queue with the start city
+                                                        --Start with a priority queue containing a tuple with:
+                                                            --start: the starting city,
+                                                            --[start]: the path taken so far (initially just the start city),
+                                                            --0: the total distance traveled so far (initially zero).
+                                                        --The second argument is an empty list for visited cities, and the third is an empty list for shortest paths.
+  where
+    -- Dijkstra's function
+    dijkstra :: [(City, Path, Distance)] -> [City] -> [(Path, Distance)] -> [Path]  --Dijkstra's Function Definition: Defines a helper function dijkstra which takes:
+                                                                                        --A priority queue of tuples (current city, path, distance).
+                                                                                        --A list of visited cities.
+                                                                                        --A list of tuples (path, distance) for the shortest paths found so far.
+    dijkstra [] _ shortestPaths = map fst shortestPaths  -- If the queue is empty, return only the paths from the shortest paths
+    dijkstra ((currentCity, path, dist):queue) visited shortestPaths  -- the tuple is the first element of the queue
+        | currentCity == end =  -- If we reached the destination city
+            let newShortestPaths = if null shortestPaths 
+                                    then [(reverse path, dist)]  -- Initialize if it's the first found path
+                                    else let (p, d) = head shortestPaths in  --If there are already paths found, extract the first one (path and distance).
+                                             if dist < d then [(reverse path, dist)]  -- New shorter path, update newShortestPaths to only contain the current path.
+                                             else if dist == d then (reverse path, dist) : shortestPaths  -- Same length path, add the current path to the list of shortest paths.
+                                             else shortestPaths  -- Ignore longer paths
+            in dijkstra queue visited newShortestPaths  --Recursive Call: Continue the Dijkstra process using the remaining queue and updated shortest paths.
+        | otherwise = --(currentCity != end)
+            let newVisited = currentCity : visited  -- Mark the current city as visited
+                adjCities = [(neighbor, d) | (neighbor, d) <- adjacent rm currentCity, neighbor `notElem` visited]
+                newPaths = [(neighbor, neighbor : path, dist + d) | (neighbor, d) <- adjCities]
+                -- Combine new paths with the existing queue and sort by distance
+                sortedQueue = Data.List.sortOn (\(_, _, d) -> d) (queue ++ newPaths)  
+            in dijkstra sortedQueue newVisited shortestPaths
 
 travelSales :: RoadMap -> Path
 travelSales = undefined
