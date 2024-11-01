@@ -1,6 +1,6 @@
 import qualified Data.List
---import qualified Data.Array
---import qualified Data.Bits
+import qualified Data.Array
+import qualified Data.Bits
 
 -- PFL 2024/2025 Practical assignment 1
 
@@ -143,8 +143,48 @@ shortestPath rm start end
                 sortedQueue = Data.List.sortOn (\(_, _, d) -> d) (queue ++ newPaths)  --Sort Queue: Combine the existing queue with the new paths and sort them based on the distance, ensuring that the next city to explore is always the one with the least cumulative distance.
             in dijkstra sortedQueue newVisited shortestPaths --Recursive Call: Call dijkstra again with the updated queue, visited cities, and shortest paths.
 
+
+type TspCoord = (City, [City]) -- TspCoord represents a city and a list of the remaining cities to visit
+type TspEntry = (Maybe Int, [City]) -- TspEntry represents the total distance of the path and the path itself
+
+compTsp :: RoadMap -> City -> [(TspCoord, TspEntry)] -> TspCoord -> TspEntry -- Compute the TSP solution for a given TspCoord
+compTsp g end a (i, k)
+    | null k = case distance g i end of -- If there are no more cities to visit
+        Just w -> (Just w, [i, end]) -- If there is a direct path to the end city (the last city to visit and the one we started from), returns the distance and the path
+        Nothing -> (Nothing, []) -- If no path exists, return Nothing and an empty path
+    | otherwise = Data.List.minimumBy compareTspEntry [addFst (lookupTsp (j, delList j k) a) (distance g i j) | j <- k] -- Otherwise, find the minimum path by comparing all possible next cities
+  where
+    addFst (c, p) (Just w) = (fmap (+ w) c, i : p) -- Add the distance to the current total and prepend the current city to the path
+    addFst _ Nothing = (Nothing, []) -- If no path exists, return Nothing and an empty path
+    compareTspEntry (Nothing, _) (Nothing, _) = EQ -- Compare two TspEntries, handling Nothing cases
+    compareTspEntry (Nothing, _) _ = GT
+    compareTspEntry _ (Nothing, _) = LT
+    compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2
+
+lookupTsp :: TspCoord -> [(TspCoord, TspEntry)] -> TspEntry
+lookupTsp coord = snd . head . filter ((== coord) . fst) -- Find the TspEntry for a given TspCoord
+
+delList :: Eq a => a -> [a] -> [a]
+delList x = filter (/= x) -- Remove an element from a list
+
+bndsTsp :: [City] -> ((City, [City]), (City, [City]))
+bndsTsp cities = ((head cities, []), (last cities, init cities)) -- Define the bounds for the TSP problem
+
+tsp :: RoadMap -> (Maybe Int, [City])
+tsp g = lookupTsp (end, init citiesList) a -- Look up the TSP solution for the given roadmap
+  where
+    citiesList = cities g -- Get the list of cities from the roadmap
+    end = last citiesList -- Define the end city as the last city in the list
+    a = [(coord, compTsp g end a coord) | coord <- [(c, s) | c <- citiesList, s <- subsets (init citiesList)]] -- Compute the TSP solution for all possible coordinates
+
+subsets :: [a] -> [[a]]
+subsets [] = [[]] -- Base case: the only subset of an empty list is the empty list
+subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
+
 travelSales :: RoadMap -> Path
-travelSales = undefined
+travelSales rm = case tsp rm of
+    (Just _, path) -> path -- If a valid path is found, return it
+    (Nothing, _) -> [] -- If no valid path is found, return an empty list
 
 tspBruteForce :: RoadMap -> Path
 tspBruteForce = undefined -- only for groups of 3 people; groups of 2 people: do not edit this function
