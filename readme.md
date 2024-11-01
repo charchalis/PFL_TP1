@@ -1,9 +1,9 @@
-*T14_G03*
-***Group Members***
+# T14_G03
 
--Rafael Filipe Barbosa da Costa up202205013 (Contribution: )
--Miguel up?? (Contribution: )
+## Group Members
+- Rafael Filipe Barbosa da Costa up202205013 (Contribution: )
+- Miguel up?? (Contribution: )
 
-***ShortestPath Function***
+### ShortestPath Function
 
-***TravelSales Function***
+### TravelSales Function
