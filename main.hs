@@ -156,28 +156,28 @@ compTsp g end a (i, k)
   where
     addFst (c, p) (Just w) = (fmap (+ w) c, i : p) -- Add the distance to the current total and prepend the current city to the path
     addFst _ Nothing = (Nothing, []) -- If no path exists, return Nothing and an empty path
-    compareTspEntry (Nothing, _) (Nothing, _) = EQ -- Compare two TspEntries, handling Nothing cases
-    compareTspEntry (Nothing, _) _ = GT
-    compareTspEntry _ (Nothing, _) = LT
-    compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2
+    compareTspEntry (Nothing, _) (Nothing, _) = EQ -- If both entries are Nothing, they are equal
+    compareTspEntry (Nothing, _) _ = GT -- If the first entry is Nothing, the second is greater
+    compareTspEntry _ (Nothing, _) = LT -- If the second entry is Nothing, the first is greater
+    compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2 -- Compare the total distances of the two entries
 
-lookupTsp :: TspCoord -> [(TspCoord, TspEntry)] -> TspEntry
+lookupTsp :: TspCoord -> [(TspCoord, TspEntry)] -> TspEntry -- Look up the TSP solution for a given TspCoord like a map
 lookupTsp coord = snd . head . filter ((== coord) . fst) -- Find the TspEntry for a given TspCoord
 
-delList :: Eq a => a -> [a] -> [a]
-delList x = filter (/= x) -- Remove an element from a list
+delList :: Eq a => a -> [a] -> [a] -- Delete an element from a list
+delList x = filter (/= x)
 
-bndsTsp :: [City] -> ((City, [City]), (City, [City]))
-bndsTsp cities = ((head cities, []), (last cities, init cities)) -- Define the bounds for the TSP problem
+bndsTsp :: [City] -> ((City, [City]), (City, [City])) -- Define the bounds for the TSP problem, first and last cities
+bndsTsp cities = ((head cities, []), (last cities, init cities))
 
-tsp :: RoadMap -> (Maybe Int, [City])
-tsp g = lookupTsp (end, init citiesList) a -- Look up the TSP solution for the given roadmap
+tsp :: RoadMap -> (Maybe Int, [City]) -- Compute the TSP solution for a given RoadMap
+tsp g = lookupTsp (end, init citiesList) a -- Look up the TSP solution for the end city and all other cities to visit
   where
     citiesList = cities g -- Get the list of cities from the roadmap
     end = last citiesList -- Define the end city as the last city in the list
     a = [(coord, compTsp g end a coord) | coord <- [(c, s) | c <- citiesList, s <- subsets (init citiesList)]] -- Compute the TSP solution for all possible coordinates
 
-subsets :: [a] -> [[a]]
+subsets :: [a] -> [[a]] -- Generate all subsets of a list
 subsets [] = [[]] -- Base case: the only subset of an empty list is the empty list
 subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
 
