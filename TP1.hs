@@ -149,6 +149,7 @@ shortestPath rm start end
 
 
 
+
 type TspCoord = (City, [City]) -- TspCoord represents a city and a list of the remaining cities to visit
 type TspEntry = (Maybe Int, [City]) -- TspEntry represents the total distance of the path and the path itself
 
