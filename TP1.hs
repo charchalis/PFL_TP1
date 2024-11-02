@@ -144,6 +144,11 @@ shortestPath rm start end
             in dijkstra sortedQueue newVisited shortestPaths --Recursive Call: Call dijkstra again with the updated queue, visited cities, and shortest paths.
 
 
+
+
+
+
+
 type TspCoord = (City, [City]) -- TspCoord represents a city and a list of the remaining cities to visit
 type TspEntry = (Maybe Int, [City]) -- TspEntry represents the total distance of the path and the path itself
 
