@@ -9,8 +9,8 @@
 ### TravelSales Function
 
 Two datatypes were defined: 
-	- TspCoord that keeps track of the current city and the cities that have yet to be visited
-	- TspEntry that represents the best solution for a given TspCoord keeping track of the total distance of the path and the path itself
+- TspCoord that keeps track of the current city and the cities that have yet to be visited
+- TspEntry that represents the best solution for a given TspCoord keeping track of the total distance of the path and the path itself
 
 The travelSales function tries to solve the tsp problem from every start/end city and returns the shortest one. It uses TspCoord to track the current and remaining cities and TspEntry to store the best solution for each TspCoord so they can be used later if needed.
 
