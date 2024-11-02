@@ -20,12 +20,12 @@ cities :: RoadMap -> [City]
 cities rm = Data.List.nub $ concat [[c1, c2] | (c1, c2, _) <- rm]
 
 --Returns True if two cities are adjacent in a roadmap, False otherwise.
---rm: roadmap (list of truples)
+--Receives a RoadMap (g) and two cities (c1, c2) as input.
 --c1, c2: The two cities you are checking for adjacency.
 --any: This function returns True if any element in the list satisfies the condition given by the lambda function.
 --The lambda function checks if c1 and c2 are connected in either order ((x == c1 && y == c2) or (x == c2 && y == c1)), so the adjacency is bidirectional.
 areAdjacent :: RoadMap -> City -> City -> Bool
-areAdjacent g c1 c2 = any (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 && y == c1)) g
+areAdjacent rm c1 c2 = any (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 && y == c1)) rm
 
 --Returns the distance between two cities in a roadmap.
 --It takes a RoadMap (rm) and two cities (c1, c2) as inputs.
@@ -39,7 +39,7 @@ distance rm c1 c2 = case filter (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 
 
 
 --Returns the cities adjacent to a given city in a roadmap.
---rm: roadmap, c: city
+--Receives a RoadMap (rm) and a City (c) as input and returns a list of tuples (City, Distance).
 --List Comprehensions:
     --The first part [(y, d) | (x, y, d) <- rm, x == c] collects all pairs where the city c is the first element of the tuple (x).
         --Here, y represents the neighboring city, and d is the distance to that city.
