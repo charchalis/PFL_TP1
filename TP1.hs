@@ -12,13 +12,14 @@ type Distance = Int
 
 type RoadMap = [(City,City,Distance)]
 
+--Returns a list of all cities in a roadmap.
 --The function takes RoadMap. Each tuple represents a road between two cities (c1, c2) and the distance (_).
 --It uses list comprehension to extract both cities from each tuple and concatenates all of them into a single list.
 --Finally, nub is applied to remove duplicates.
 cities :: RoadMap -> [City]
 cities rm = Data.List.nub $ concat [[c1, c2] | (c1, c2, _) <- rm]
 
-
+--Returns True if two cities are adjacent in a roadmap, False otherwise.
 --rm: roadmap (list of truples)
 --c1, c2: The two cities you are checking for adjacency.
 --any: This function returns True if any element in the list satisfies the condition given by the lambda function.
@@ -26,7 +27,7 @@ cities rm = Data.List.nub $ concat [[c1, c2] | (c1, c2, _) <- rm]
 areAdjacent :: RoadMap -> City -> City -> Bool
 areAdjacent g c1 c2 = any (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 && y == c1)) g
 
-
+--Returns the distance between two cities in a roadmap.
 --It takes a RoadMap (rm) and two cities (c1, c2) as inputs.
 --It filters the roadmap to find a tuple where the cities are connected (either c1 -> c2 or c2 -> c1).
 --If no connection is found, it returns Nothing.
@@ -37,7 +38,8 @@ distance rm c1 c2 = case filter (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 
     ((_, _, d):_) -> Just d
 
 
-
+--Returns the cities adjacent to a given city in a roadmap.
+--rm: roadmap, c: city
 --List Comprehensions:
     --The first part [(y, d) | (x, y, d) <- rm, x == c] collects all pairs where the city c is the first element of the tuple (x).
         --Here, y represents the neighboring city, and d is the distance to that city.
@@ -48,6 +50,7 @@ distance rm c1 c2 = case filter (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 
 adjacent :: RoadMap -> City -> [(City,Distance)]
 adjacent rm c = [(y, d) | (x, y, d) <- rm, x == c] ++ [(x, d) | (x, y, d) <- rm, y == c]
 
+--Returns the distance of a path in a roadmap.
 --It takes a RoadMap (rm) and a Path as input.
 --If the path is empty or has only one city, the distance is 0.
 --Otherwise, it calculates the distance between the first two cities in the path using the distance function.
@@ -65,6 +68,7 @@ pathDistance rm (c1:c2:cs) =
             Just ds -> Just (d + ds)
 
 
+--Returns the city with the most adjacent cities in a roadmap.
 --It takes a RoadMap (rm) as input.
 --It uses a list comprehension and the previously implemented cities function to iterate over all cities in the roadmap.
 --For each city, it calculates the number of adjacent cities using the adjacent function implemented before.
@@ -147,12 +151,15 @@ shortestPath rm start end
 type TspCoord = (City, [City]) -- TspCoord represents a city and a list of the remaining cities to visit
 type TspEntry = (Maybe Int, [City]) -- TspEntry represents the total distance of the path and the path itself
 
-compTsp :: RoadMap -> City -> [(TspCoord, TspEntry)] -> TspCoord -> TspEntry -- Compute the TSP solution for a given TspCoord
-compTsp g end a (i, k)
-    | null k = case distance g i end of -- If there are no more cities to visit
+-- Compute the TSP solution for a given TspCoord
+-- Receives a RoadMap, the final city, a list of TspEntry, and a TspCoord as input and returns a TspEntry
+-- rm: RoadMap, end: final city, a: list of TspEntry, i: current city, k: list of remaining cities to visit
+compTsp :: RoadMap -> City -> [(TspCoord, TspEntry)] -> TspCoord -> TspEntry 
+compTsp rm end a (i, k) 
+    | null k = case distance rm i end of -- If there are no more cities to visit
         Just w -> (Just w, [i, end]) -- If there is a direct path to the end city (the last city to visit and the one we started from), returns the distance and the path
         Nothing -> (Nothing, []) -- If no path exists, return Nothing and an empty path
-    | otherwise = Data.List.minimumBy compareTspEntry [addFst (lookupTsp (j, Data.List.delete j k) a) (distance g i j) | j <- k] -- Otherwise, find the minimum path by comparing all possible next cities
+    | otherwise = Data.List.minimumBy compareTspEntry [addFst (lookupTsp (j, Data.List.delete j k) a) (distance rm i j) | j <- k] -- Otherwise, find the minimum path by comparing all possible next cities
   where
     addFst (c, p) (Just w) = (fmap (+ w) c, i : p) -- Add the distance to the current total and prepend the current city to the path
     addFst _ Nothing = (Nothing, []) -- If no path exists, return Nothing and an empty path
@@ -161,19 +168,26 @@ compTsp g end a (i, k)
     compareTspEntry _ (Nothing, _) = LT 
     compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2 -- Compare the total distances of the two entries
 
-lookupTsp :: TspCoord -> [(TspCoord, TspEntry)] -> TspEntry -- Look up the TSP solution for a given TspCoord like a map
-lookupTsp coord = snd . head . filter ((== coord) . fst) -- Find the TspEntry for a given TspCoord
+-- Look up the TSP solution for a given TspCoord like a map
+-- Find the TspEntry for a given TspCoord
+-- Receives a TspCoord and a list of TspEntry as input and returns the TspEntry corresponding to the given TspCoord
+lookupTsp :: TspCoord -> [(TspCoord, TspEntry)] -> TspEntry 
+lookupTsp coord = snd . head . filter ((== coord) . fst) 
 
-subsets :: [a] -> [[a]] -- Generate all subsets of a list
-subsets [] = [[]] -- Base case: the only subset of an empty list is the empty list
-subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
+-- Generate all subsets of a list
+-- Receives a list of cities as input and returns a list of all possible subsets of the input list
+subsets :: [a] -> [[a]]
+subsets [] = [[]] -- The only subset of an empty list is the empty list
+subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursively combine subsets without the first element and subsets with the first element
 
-travelSales :: RoadMap -> Path -- Compute the TSP solution for a given RoadMap and return the path
+-- Compute the TSP solution for a given RoadMap and return the path
+-- Receives a RoadMap as input and returns the path of the TSP solution
+travelSales :: RoadMap -> Path
 travelSales rm = case Data.List.minimumBy compareTspEntry [tspWithEnd rm end | end <- cities rm] of
     (Nothing, _) -> [] -- If no path is found, return an empty list
     (_, path) -> path -- Otherwise, return the path
     where
-        tspWithEnd g end = lookupTsp (end, filter (/= end) citiesList) a -- Compute the TSP solution for a given end city
+        tspWithEnd g end = lookupTsp (end, filter (/= end) citiesList) a -- Compute the TSP solution for a given end city. g: RoadMap, end: final city, a: list of TspEntry
             where
                 citiesList = cities g
                 a = [(coord, compTsp g end a coord) | coord <- [(c, s) | c <- citiesList, s <- subsets (filter (/= end) citiesList)]] -- Compute the TSP solution for all possible coordinates
