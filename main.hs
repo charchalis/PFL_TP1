@@ -167,13 +167,6 @@ lookupTsp coord = snd . head . filter ((== coord) . fst) -- Find the TspEntry fo
 bndsTsp :: [City] -> ((City, [City]), (City, [City])) -- Define the bounds for the TSP problem, first and last cities
 bndsTsp cities = ((head cities, []), (last cities, init cities))
 
-tsp :: RoadMap -> (Maybe Int, [City]) -- Compute the TSP solution for a given RoadMap
-tsp g = lookupTsp (end, init citiesList) a -- Look up the TSP solution for the end city and all other cities to visit
-  where
-    citiesList = cities g -- Get the list of cities from the roadmap
-    end = last citiesList -- Define the end city as the last city in the list
-    a = [(coord, compTsp g end a coord) | coord <- [(c, s) | c <- citiesList, s <- subsets (init citiesList)]] -- Compute the TSP solution for all possible coordinates
-
 subsets :: [a] -> [[a]] -- Generate all subsets of a list
 subsets [] = [[]] -- Base case: the only subset of an empty list is the empty list
 subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
