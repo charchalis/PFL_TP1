@@ -179,7 +179,9 @@ subsets [] = [[]] -- Base case: the only subset of an empty list is the empty li
 subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
 
 travelSales :: RoadMap -> Path -- Compute the TSP solution for a given RoadMap and return the path
-travelSales rm = snd $ Data.List.minimumBy compareTspEntry [tspWithEnd rm end | end <- cities rm] -- Find the minimum TSP solution for all possible end cities
+travelSales rm = case Data.List.minimumBy compareTspEntry [tspWithEnd rm end | end <- cities rm] of
+    (Nothing, _) -> [] -- If no path is found, return an empty list
+    (_, path) -> path -- Otherwise, return the path
     where
         tspWithEnd g end = lookupTsp (end, filter (/= end) citiesList) a -- Compute the TSP solution for a given end city
             where
