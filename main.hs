@@ -182,9 +182,16 @@ subsets [] = [[]] -- Base case: the only subset of an empty list is the empty li
 subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
 
 travelSales :: RoadMap -> Path
-travelSales rm = case tsp rm of
-    (Just _, path) -> path -- If a valid path is found, return it
-    (Nothing, _) -> [] -- If no valid path is found, return an empty list
+travelSales rm = snd $ Data.List.minimumBy compareTspEntry [tspWithEnd rm end | end <- cities rm]
+    where
+        tspWithEnd g end = lookupTsp (end, filter (/= end) citiesList) a
+            where
+                citiesList = cities g
+                a = [(coord, compTsp g end a coord) | coord <- [(c, s) | c <- citiesList, s <- subsets (filter (/= end) citiesList)]]
+        compareTspEntry (Nothing, _) (Nothing, _) = EQ
+        compareTspEntry (Nothing, _) _ = GT
+        compareTspEntry _ (Nothing, _) = LT
+        compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2
 
 tspBruteForce :: RoadMap -> Path
 tspBruteForce = undefined -- only for groups of 3 people; groups of 2 people: do not edit this function
