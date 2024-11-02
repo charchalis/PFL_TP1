@@ -111,6 +111,8 @@ isStronglyConnected :: RoadMap -> Bool
 isStronglyConnected rm = all (\city -> length (dfs rm city) == length (cities rm)) (cities rm)
 
 
+
+
 shortestPath :: RoadMap -> City -> City -> [Path]
 shortestPath rm start end
     | start == end = [[start]]  -- If start and end are the same, return the city as the only path
@@ -146,6 +148,12 @@ shortestPath rm start end
                 -- Combine new paths with the existing queue and sort by distance
                 sortedQueue = Data.List.sortOn (\(_, _, d) -> d) (queue ++ newPaths)  --Sort Queue: Combine the existing queue with the new paths and sort them based on the distance, ensuring that the next city to explore is always the one with the least cumulative distance.
             in dijkstra sortedQueue newVisited shortestPaths --Recursive Call: Call dijkstra again with the updated queue, visited cities, and shortest paths.
+
+
+
+
+
+
 
 
 type TspCoord = (City, [City]) -- TspCoord represents a city and a list of the remaining cities to visit
