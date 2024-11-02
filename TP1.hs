@@ -164,9 +164,6 @@ compTsp g end a (i, k)
 lookupTsp :: TspCoord -> [(TspCoord, TspEntry)] -> TspEntry -- Look up the TSP solution for a given TspCoord like a map
 lookupTsp coord = snd . head . filter ((== coord) . fst) -- Find the TspEntry for a given TspCoord
 
-bndsTsp :: [City] -> ((City, [City]), (City, [City])) -- Define the bounds for the TSP problem, first and last cities
-bndsTsp cities = ((head cities, []), (last cities, init cities))
-
 subsets :: [a] -> [[a]] -- Generate all subsets of a list
 subsets [] = [[]] -- Base case: the only subset of an empty list is the empty list
 subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
