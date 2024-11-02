@@ -158,20 +158,17 @@ compTsp g end a (i, k)
     | null k = case distance g i end of -- If there are no more cities to visit
         Just w -> (Just w, [i, end]) -- If there is a direct path to the end city (the last city to visit and the one we started from), returns the distance and the path
         Nothing -> (Nothing, []) -- If no path exists, return Nothing and an empty path
-    | otherwise = Data.List.minimumBy compareTspEntry [addFst (lookupTsp (j, delList j k) a) (distance g i j) | j <- k] -- Otherwise, find the minimum path by comparing all possible next cities
+    | otherwise = Data.List.minimumBy compareTspEntry [addFst (lookupTsp (j, Data.List.delete j k) a) (distance g i j) | j <- k] -- Otherwise, find the minimum path by comparing all possible next cities
   where
     addFst (c, p) (Just w) = (fmap (+ w) c, i : p) -- Add the distance to the current total and prepend the current city to the path
     addFst _ Nothing = (Nothing, []) -- If no path exists, return Nothing and an empty path
-    compareTspEntry (Nothing, _) (Nothing, _) = EQ -- If both entries are Nothing, they are equal
-    compareTspEntry (Nothing, _) _ = GT -- If the first entry is Nothing, the second is greater
-    compareTspEntry _ (Nothing, _) = LT -- If the second entry is Nothing, the first is greater
+    compareTspEntry (Nothing, _) (Nothing, _) = EQ 
+    compareTspEntry (Nothing, _) _ = GT 
+    compareTspEntry _ (Nothing, _) = LT 
     compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2 -- Compare the total distances of the two entries
 
 lookupTsp :: TspCoord -> [(TspCoord, TspEntry)] -> TspEntry -- Look up the TSP solution for a given TspCoord like a map
 lookupTsp coord = snd . head . filter ((== coord) . fst) -- Find the TspEntry for a given TspCoord
-
-delList :: Eq a => a -> [a] -> [a] -- Delete an element from a list
-delList x = filter (/= x)
 
 bndsTsp :: [City] -> ((City, [City]), (City, [City])) -- Define the bounds for the TSP problem, first and last cities
 bndsTsp cities = ((head cities, []), (last cities, init cities))
@@ -187,10 +184,17 @@ subsets :: [a] -> [[a]] -- Generate all subsets of a list
 subsets [] = [[]] -- Base case: the only subset of an empty list is the empty list
 subsets (x:xs) = subsets xs ++ map (x:) (subsets xs) -- Recursive case: combine subsets without the first element and subsets with the first element
 
-travelSales :: RoadMap -> Path
-travelSales rm = case tsp rm of
-    (Just _, path) -> path -- If a valid path is found, return it
-    (Nothing, _) -> [] -- If no valid path is found, return an empty list
+travelSales :: RoadMap -> Path -- Compute the TSP solution for a given RoadMap and return the path
+travelSales rm = snd $ Data.List.minimumBy compareTspEntry [tspWithEnd rm end | end <- cities rm] -- Find the minimum TSP solution for all possible end cities
+    where
+        tspWithEnd g end = lookupTsp (end, filter (/= end) citiesList) a -- Compute the TSP solution for a given end city
+            where
+                citiesList = cities g
+                a = [(coord, compTsp g end a coord) | coord <- [(c, s) | c <- citiesList, s <- subsets (filter (/= end) citiesList)]] -- Compute the TSP solution for all possible coordinates
+        compareTspEntry (Nothing, _) (Nothing, _) = EQ 
+        compareTspEntry (Nothing, _) _ = GT 
+        compareTspEntry _ (Nothing, _) = LT 
+        compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2 -- Compare the total distances of the two entries
 
 tspBruteForce :: RoadMap -> Path
 tspBruteForce = undefined -- only for groups of 3 people; groups of 2 people: do not edit this function
