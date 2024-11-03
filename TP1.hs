@@ -1,6 +1,6 @@
 import qualified Data.List
-import qualified Data.Array
-import qualified Data.Bits
+--import qualified Data.Array
+--import qualified Data.Bits
 
 -- PFL 2024/2025 Practical assignment 1
 
@@ -19,13 +19,15 @@ type RoadMap = [(City,City,Distance)]
 cities :: RoadMap -> [City]
 cities rm = Data.List.nub $ concat [[c1, c2] | (c1, c2, _) <- rm]
 
+
 --Returns True if two cities are adjacent in a roadmap, False otherwise.
---Receives a RoadMap (g) and two cities (c1, c2) as input.
+--Receives a RoadMap (rm) and two cities (c1, c2) as input.
 --c1, c2: The two cities you are checking for adjacency.
 --any: This function returns True if any element in the list satisfies the condition given by the lambda function.
 --The lambda function checks if c1 and c2 are connected in either order ((x == c1 && y == c2) or (x == c2 && y == c1)), so the adjacency is bidirectional.
 areAdjacent :: RoadMap -> City -> City -> Bool
 areAdjacent rm c1 c2 = any (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 && y == c1)) rm
+
 
 --Returns the distance between two cities in a roadmap.
 --It takes a RoadMap (rm) and two cities (c1, c2) as inputs.
@@ -50,6 +52,7 @@ distance rm c1 c2 = case filter (\(x, y, _) -> (x == c1 && y == c2) || (x == c2 
 adjacent :: RoadMap -> City -> [(City,Distance)]
 adjacent rm c = [(y, d) | (x, y, d) <- rm, x == c] ++ [(x, d) | (x, y, d) <- rm, y == c]
 
+
 --Returns the distance of a path in a roadmap.
 --It takes a RoadMap (rm) and a Path as input.
 --If the path is empty or has only one city, the distance is 0.
@@ -68,19 +71,27 @@ pathDistance rm (c1:c2:cs) =
             Just ds -> Just (d + ds)
 
 
---Returns the city with the most adjacent cities in a roadmap.
+--Returns a list of cities with the most adjacent cities in a roadmap.
 --It takes a RoadMap (rm) as input.
 --It uses a list comprehension and the previously implemented cities function to iterate over all cities in the roadmap.
 --For each city, it calculates the number of adjacent cities using the adjacent function implemented before.
 --The result is a list of tuples where the first element is the city, and the second element is the number of adjacent cities.
---The function returns the first element of the tuples with the maximum number of adjacent cities.
+--The function returns the first element of each tuple with the maximum number of adjacent cities.
 rome :: RoadMap -> [City]
 rome rm = 
     let cityRoadCounts = [(city, length $ adjacent rm city) | city <- cities rm]
     in map fst $ filter (\(_, count) -> count == maximum (map snd cityRoadCounts)) cityRoadCounts
 
 
--- Helper function for DFS to collect reachable cities from a starting city
+
+
+
+--------------------------------------Is Strongly Connected--------------------------------------
+
+
+-- Helper function for isStronglyConnected that collects reachable cities from a starting city
+-- It takes a RoadMap (rm) and a starting city (start) as input
+-- Returns a list of cities reachable from the starting city
 dfs :: RoadMap -> City -> [City]
 dfs rm start = go [start] [] --This initializes the helper function go, passing it a list with the starting city [start] and an empty list [] to keep track of visited cities.
   where
@@ -92,27 +103,27 @@ dfs rm start = go [start] [] --This initializes the helper function go, passing 
       | c `elem` visited = go cs visited --If the current city c has already been visited it skips this city
       | otherwise = go (adjacentCities ++ cs) (c : visited) --otherwise add c to the visited (c:visited) and collect its adjacent cities and prepend them to the list of cities to visit
       where
-        adjacentCities = ([y | (x, y, _) <- rm, x == c] ++ [x | (x, y, _) <- rm, y == c]) --This list comprehension gathers all cities directly connected to c (both directions)
-        --adjacentCities = [adjCity | (adjCity, _) <- adjacent rm c]  --less efficient
+        adjacentCities = [adjCity | (adjCity, _) <- adjacent rm c]  --uses previously defined adjacent function to gather all cities directly connected to c
 
-
---all Function:
-    --all is a higher-order function that takes a predicate (a function returning True or False) and a list. It checks if the predicate is True for every item in the list.
-    --In isStronglyConnected, all applies a lambda function to every city in the list cities rm.
---Lambda Function:
-    --(\city -> length (dfs rm city) == length (cities rm))
-        --This lambda function checks if, starting from a particular city, dfs can reach all other cities.
-    --Breakdown:
-        --dfs rm city: Performs a depth-first search from the given city, returning a list of all cities reachable from that city.
-        --length (dfs rm city): Counts the number of cities reachable from the starting city.
-        --length (cities rm): Counts the total number of cities in the roadmap.
-        --length (dfs rm city) == length (cities rm): This comparison checks if the number of reachable cities from city matches the total number of cities. If it does, then starting from this city, we can reach every other city.
+-- Returns True if is strongly connected, false otherwise
+-- It takes RoadMap (rm) as input
+-- all Function: all is a higher-order function that takes a predicate (a function returning True or False) and a list. It checks if the predicate is True for every item in the list.
+-- Lambda Function: (\city -> length (dfs rm city) == length (cities rm))
+    -- This lambda function checks if, starting from a particular city, dfs can reach all other cities.
+    --dfs rm city: Performs a depth-first search from the given city, returning a list of all cities reachable from that city.
+    --length (dfs rm city) == length (cities rm): This comparison checks if the number of reachable cities from city matches the total number of cities. If it does, then starting from this city, we can reach every other city.
 isStronglyConnected :: RoadMap -> Bool
 isStronglyConnected rm = all (\city -> length (dfs rm city) == length (cities rm)) (cities rm)
 
 
 
 
+
+--------------------------------------Shortest Path--------------------------------------
+
+
+-- Returns a list of shortest paths. Each Path is a list of cities representing a shortest path from a starting city (start) to a ending city (end)
+-- It takes a RoadMap (rm), a starting city (start) and an ending city (end) as arguments
 shortestPath :: RoadMap -> City -> City -> [Path]
 shortestPath rm start end
     | start == end = [[start]]  -- If start and end are the same, return the city as the only path
@@ -124,6 +135,8 @@ shortestPath rm start end
                                                         --The second argument is an empty list for visited cities, and the third is an empty list for shortest paths.
   where
     -- Dijkstra's function
+    -- Returns a list of shortest paths
+    -- It takes a priority queue ([(City, Path, Distance)]), a list of visited cities ([City]) and a shortest paths list ([(Path, Distance)]) as arguments
     dijkstra :: [(City, Path, Distance)] -> [City] -> [(Path, Distance)] -> [Path]  --Dijkstra's Function Definition: Defines a helper function dijkstra which takes:
                                                                                         --A priority queue of tuples (current city, path, distance).
                                                                                         --A list of visited cities.
@@ -154,6 +167,7 @@ shortestPath rm start end
 
 
 
+--------------------------------------Travel Sales--------------------------------------
 
 
 type TspCoord = (City, [City]) -- TspCoord represents a city and a list of the remaining cities to visit
@@ -204,8 +218,15 @@ travelSales rm = case Data.List.minimumBy compareTspEntry [tspWithEnd rm end | e
         compareTspEntry _ (Nothing, _) = LT 
         compareTspEntry (Just c1, _) (Just c2, _) = compare c1 c2 -- Compare the total distances of the two entries
 
+
+
+
+
+
 tspBruteForce :: RoadMap -> Path
 tspBruteForce = undefined -- only for groups of 3 people; groups of 2 people: do not edit this function
+
+
 
 -- Some graphs to test your work
 gTest1 :: RoadMap
