@@ -4,7 +4,9 @@
 - Rafael Filipe Barbosa da Costa up202205013 (Contribution: 50%)
 - Miguel Wojciech de Vasconcelos Charchalis up201506074 (Contribution: 50%)
 
+
 ---
+
 
 ### ShortestPath Function
 
@@ -34,7 +36,11 @@ If currentCity isn’t end, it marks it as visited, expands to unvisited neighbo
 
 Dijkstra’s algorithm was chosen because it’s efficient in finding the shortest path in weighted graphs without negative weights. By maintaining a priority queue and only expanding nodes with the shortest cumulative distance, the algorithm ensures that it finds the shortest path in an optimal and computationally feasible manner. Additionally, the adaptation to collect multiple paths (if they have equal shortest distances) aligns well with Dijkstra’s framework by only requiring small modifications to track alternative shortest paths when encountered.
 
+
+
 ---
+
+
 
 ### TravelSales Function
 
